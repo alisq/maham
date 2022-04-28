@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Play It By Ear</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;800&family=Baskervville:ital@0;1&family=Space+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/main.css"> 
+   
+</head>
+<body>
+
+
+    <div id="container">
+        <section id="left">
+            <div class="interior">
+                <strong>play it by ear</strong>
+                <br /><br />
+                Any mark upon a piece of paper may be interpreted in sound. By extension, any mark on stone or shell or bark, their roughness or smoothness, vicious jagged shape or gentle undulations, may also be interpreted as sound…Which leads me to speculate that, in making poems, I am endeavouring to add to the ‘natural’ forms in the universe” (Bob Cobbing, The Elemental Dance, January 1974, from Stereo Headphones #6, Summer 1974, page 13). 
+
+                <br /><br />
+
+                Sounds are protest.<br />
+                
+                Sounds are repetitive.  <br />
+                
+                Sounds are grief. <br />
+                
+                Sounds are celebration. <br />
+                
+                Sounds are memory.<br />
+                
+                Sounds are liberation. <br />
+                
+                Sounds are dreams.<br />
+                
+                Sounds are timeless.<br />
+                
+                Sounds are silence.<br />
+                
+                Sounds are a spectrum.<br />
+                
+                Sounds are poetic. <br />
+                
+                Sounds are a dialogue. <br />
+                
+                Sounds are symbolic.<br />
+                
+                Sounds are possibilities. <br />
+                
+                Sounds are documentation.<br />
+                
+                Sounds are fossils.<br />
+                
+                Sounds are community. <br />
+                
+                <br />
+                
+                Sounds are music. <br />
+                
+                Music is sound. <br />
+                
+                <br /><br />
+                
+                this project aims to create a collaborative storytelling process through the documentation of sounds. Specifically the sounds of creating.
+                <br /><br />
+                 
+                
+                Use any materials available to you (paper, printer, markers, beads, wire, thread, scissors, etc) to create a quick 5 minute art piece inspired by the previous/latest recording. record the sounds that result from your creative process for 30 seconds out of the 5 minutes and upload!  
+            </div>
+        </section>
+        <section id="right">
+            <div class="interior">
+            <strong>record</strong>
+            <br /><br />
+            <div id="controls">
+            <button id="recordButton">Record</button>
+            <button id="transcribeButton" disabled>Stop & upload</button>
+            <br /><br />
+            </div>
+            <div id="output"></div>
+        </div>
+        </section>
+    </div>
+
+
+    
+    <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+    <script>
+                
+        let rec = null;
+        let audioStream = null;
+
+        const recordButton = document.getElementById("recordButton");
+        const transcribeButton = document.getElementById("transcribeButton");
+
+        recordButton.addEventListener("click", startRecording);
+        transcribeButton.addEventListener("click", transcribeText);
+
+        function startRecording() {
+
+            let constraints = { audio: true, video:false }
+
+            recordButton.disabled = true;
+            transcribeButton.disabled = false;
+
+            navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+                const audioContext = new window.AudioContext();
+                audioStream = stream;
+                const input = audioContext.createMediaStreamSource(stream);
+                rec = new Recorder(input, { numChannels: 1 })
+                rec.record()
+                document.getElementById("output").innerHTML = "Recording started..."
+            }).catch(function(err) {
+                recordButton.disabled = false;
+                transcribeButton.disabled = true;
+            });
+        }
+
+        function transcribeText() {
+            document.getElementById("output").innerHTML = "Converting audio to text..."
+            transcribeButton.disabled = true;
+            recordButton.disabled = false;
+            rec.stop();
+            audioStream.getAudioTracks()[0].stop();
+            rec.exportWAV(uploadSoundData);
+        }
+
+        function uploadSoundData(blob) {
+            const filename = "sound-file-" + new Date().getTime() + ".wav";
+            const formData = new FormData();
+            formData.append("audio_data", blob, filename);
+            
+            fetch('/notes', {
+                method: 'POST',
+                body: formData
+            }).then(async result => { 
+                document.getElementById("output").innerHTML = await result.text();
+                
+                setTimeout(function(){
+                    getFiles();
+                },1500);
+            }).catch(error => { 
+                document.getElementById("output").innerHTML = "An error occurred: " + error;
+            })
+        }
+
+        getFiles();
+        function getFiles() {
+            console.log('get')
+            fetch('/sounds')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                for (i=0;i<data.length;i++){
+
+                    if (data[i] != ".DS_Store") {
+                        d = `
+                    <li class="audio-file">
+                        <audio controls>
+                        <source src="sound_files/${data[i]}" type="audio/wav">
+                        Your browser does not support the audio element.
+                        </audio>
+                    </li>
+                    `
+                    document.querySelector("#output").innerHTML += d;
+                    }
+                    
+                }
+            });
+
+
+        }
+        
+    </script>
+</body>
+</html>

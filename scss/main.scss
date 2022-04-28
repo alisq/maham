@@ -1,0 +1,48 @@
+* {
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+
+body {
+    color:red;
+    font-family: 'Azeret Mono', monospace;
+    line-height:1.2
+}
+
+button {
+    color:red;
+    font-family: 'Azeret Mono', monospace;
+    border:1px solid red;
+    background:white;
+    padding:0.5em;
+    border-radius:1em;
+
+    &:hover {
+        color:white;
+        background:red;
+    }
+}
+
+
+#container {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    height:100vh;
+}
+
+#left {
+    border-right:1px solid red;
+    background-image:url('../img/hands.jpg');
+    background-size:cover;
+}
+
+.interior {
+    max-width:600px;
+    margin:3em auto;
+}
+
+.audio-file {
+    list-style-type:none;
+}
